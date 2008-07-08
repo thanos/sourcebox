@@ -295,14 +295,41 @@ public class Iteration {
  
     
      	/**
-         * Make an iterable that computes the lambda using arguments from each of the 
-         * iterables. 
+         * return an Iterable whose iterator will with every call to next apply lambda  whose arguments will be an item from each given iterable.
          * Map will stops when the shortest iterable is exhausted. 
          * @param  lambda, an <code>Lamda</code>
          * @param  iterable, an <code>Iterable</code>
          * @return an <code>Iterable</code>.
          * 
-         * @see <code>slice</code>.
+         * -----------------------------------------------------
+         * Collection<Object> a = toCollection(new ArrayList<Object>(), 1, 2, 3, 4, 5, 6, 3, 3, 10);
+         * Iterable<Integer> b = range(2, 10, 3);
+         * System.out.println("a = " + str(a));
+         * System.out.println("b = " + b);
+         * 
+         * System.out.println("testing map(lambda x: x*10, b): "
+         * + map(new Lambda() {
+         *  public Object process(Object... args) {
+         *  return ((Integer) args[0]) * 10;
+         *  }
+         *  }, b));
+         *  
+         *  System.out.println("testing map(lambda x,y: x*10+y, a, b): "
+         *  + map(new Lambda() {
+         *  public Object process(Object... args) {
+         *	int x = (Integer) args[0];
+         *	int y = (Integer) args[1];
+         *	return x+y;
+         *  }
+         *  }, a, b));
+         * .....................................................
+         * a = 1,2,3,4,5,6,3,3,10
+         * b = (2,5,8)
+         * testing map(lambda x: x*10, b): (20,50,80)
+         * testing map(lambda x,y: x*10+y, a, b): (12,25,38)
+         * -----------------------------------------------------
+         * 
+         * @see <code>filer,zip</code>.
          */
     public static Iterable<Object> map(final Lambda lambda,
 	    final Iterable<?>... iterables) {
@@ -342,14 +369,15 @@ public class Iteration {
 
     
  	/**
-     * Make an iterable that computes the lambda using arguments from each of the 
-     * iterables. 
-     * Map will stops when the shortest iterable is exhausted. 
-     * @param  lambda, an <code>Lamda</code>
-     * @param  iterable, an <code>Iterable</code>
+     * This function returns a Iterable  of Iterable, where the i-th Iterable 
+     * contains the i-th element from each of the argument iterables.
+     * The returned Iterable is truncated in length to the length of the shortest 
+     * argument Iterable.
+     * 
+     * @param  iterables, an number of <code>Iterable</code>s
      * @return an <code>Iterable</code>.
      * 
-     * @see <code>slice</code>.
+     * @see <code>map</code>.
      */
     public static Iterable<Object> zip(final Iterable<?>... iterables) {
 	final Iterator<?>[] iterators = new Iterator[iterables.length];
@@ -386,42 +414,19 @@ public class Iteration {
 
     }
 
-    public static Iterable<Object> imap(final Lambda lambda,
-	    final Iterable<?>... iterables) {
-	return new Iterable<Object>() {
-	    public Iterator<Object> iterator() {
-		final Iterator<?>[] iterators = new Iterator[iterables.length];
-		for (int i = 0; i < iterables.length; i++)
-		    iterators[i] = iterables[i] != null ? iterables[i]
-			    .iterator() : Null;
-		return new Iterator<Object>() {
-		    public boolean hasNext() {
-			for (Iterator<?> iterator : iterators) {
-			    if (iterator.hasNext() == false)
-				return false;
-			}
-			return true;
-		    }
-
-		    public Object next() {
-			return lambda.process(map(iterators, new Lambda() {
-			    public Object process(Object... args) {
-				return ((Iterator<?>) args[0]).next();
-			    }
-			}));
-
-		    }
-
-		    public void remove() {
-		    }
-		};
-	    }
-
-	};
-
-    }
-
-    public static Iterable<Object> filter(final Lambda lambda,
+    
+ 	/**
+     * This function returns a Iterable  from those elements of the given iterable for which 
+     * predicate returns not null. 
+     * 
+     * @param  predicate, a Lambda
+     * @param  iterable
+     * @return an <code>Iterable</code>.
+     * 
+     * @see <code>map</code>.
+     */
+ 
+    public static Iterable<Object> filter(final Lambda predicate,
 	    final Iterable<?> iterable) {
 	return buildObjectIterable(new IteratorMaker<Object>() {
 	    public Iterator<Object> iterator() {
@@ -437,7 +442,7 @@ public class Iteration {
 
 		    public Object getNext(Object obj) {
 			while (obj == null && iterator.hasNext()) {
-			    obj = lambda.process(iterator.next());
+			    obj = predicate.process(iterator.next());
 			}
 			return obj;
 		    }
@@ -456,6 +461,20 @@ public class Iteration {
 	});
     }
 
+    
+    
+ 	/**
+     * This function makes a Iterable  whose iterator whose iterator  
+     * returns elements from the given iterable as 
+     * long as the predicate is true. 
+     * 
+     * @param  predicate, a Lambda
+     * @param  iterable
+     * @return an <code>Iterable</code>.
+     * 
+     * @see <code>filter, dropwhile</code>.
+     */
+    
     public static Iterable<Object> takewhile(final Lambda lambda,
 	    final Iterable<?> iterable) {
 	return buildObjectIterable(new IteratorMaker<Object>() {
@@ -490,7 +509,20 @@ public class Iteration {
 	    }
 	});
     }
-
+ 	/**
+     * This function makes a Iterable  whose  iterator  drops elements from the 
+     * given iterable as long as the predicate is true.
+     * Afterwards it  returns every element. 
+     * 
+     * Note, the iterator does not produce any output until the predicate 
+     * is true, so it may have a lengthy start-up time
+     * 
+     * @param  predicate, a Lambda
+     * @param  iterable
+     * @return an <code>Iterable</code>.
+     * 
+     * @see <code>filter, takewhile</code>.
+     */
     public static Iterable<Object> dropwhile(final Lambda lambda,
 	    final Iterable<?> iterable) {
 	return buildObjectIterable(new IteratorMaker<Object>() {
@@ -523,6 +555,37 @@ public class Iteration {
 	});
     }
 
+    
+    /**
+     * Makes an Iterable whoe iterator applies the lambda  function of two arguments 
+     * cumulatively to the items of the goven iterable, 
+     * from left to right, so as to reduce the iterable to a single value. 
+     * 
+     * The example the code below  calculates ((((1+2)+3)+4)+5). 
+     *         
+     * -----------------------------------------------------
+     * 
+     * System.out.println("testing reduce(lambda x,y: x+y, a,0): "
+     * + reduce(new Lambda() {
+     * public Object process(Object... args) {
+     *	int x = (Integer) args[0];
+     *	int y = (Integer) args[1];
+     *	return x+y;
+     * }
+     * }, iterable(1,2,3,4,5), 0));
+     * 
+     * .....................................................
+     * testing reduce(lambda x,y: x+y, a,0): 15 
+     * -----------------------------------------------------
+     * 
+     * @param  predicate, a Lambda
+     * @param  iterable
+     * @param start, The initial start value.
+     * @return an <code>Iterable</code>.
+     * 
+     * @see <code>filter, takewhile</code>.
+     */
+    
     public static Object reduce(Lambda lambda, final Iterable<Object> iterable,
 	    Object start) {
 	Object result = start;
@@ -532,11 +595,14 @@ public class Iteration {
 	return result;
     }
 
-    /*
+    /**
      * Make an iterator that returns elements from the first iterable until it
      * is exhausted, then proceeds to the next iterable, until all of the
      * iterables are exhausted. Used for treating consecutive sequences as a
      * single sequence.
+     * 
+     * @param iterables, a varialble number of iterables to chain through.
+     * @return an <code>Iterable</code>.
      */
     public static Iterable<Object> chain(final Iterable<?>... iterables) {
 	return buildObjectIterable(new IteratorMaker<Object>() {
@@ -596,15 +662,18 @@ public class Iteration {
 	});
     }
 
-    /*
-     * Make an Iterable that returns consecutive integers starting with n.
+    
+    /**
+     * Make an Iterable whose iterator  returns consecutive integers starting with start.
+     * 
+     * @param start.
+     * @return an <code>Iterable</code>.
      */
-
-    public static Iterable<Integer> count(final int num) {
+    public static Iterable<Integer> count(final int start) {
 	return buildIntegerIterable(new IteratorMaker<Integer>() {
 	    public Iterator<Integer> iterator() {
 		return new Iterator<Integer>() {
-		    int iterableIndex = num;
+		    int iterableIndex = start;
 
 		    public boolean hasNext() {
 			return true;
@@ -621,10 +690,13 @@ public class Iteration {
 	});
     }
 
-    /*
-     * Make an iterator endlessly returning elements from the iterable.
-     */
 
+    /**
+     * Make an Iterable whose iterator  endlessly returning elements from the given iterable.
+     * 
+     * @param iterable.
+     * @return an <code>Iterable</code>.
+     */
     public static Iterable<Object> cycle(final Iterable<?> iterable) {
 	return buildObjectIterable(new IteratorMaker<Object>() {
 	    public Iterator<Object> iterator() {
@@ -651,6 +723,13 @@ public class Iteration {
 	});
     }
 
+    /**
+     * Make an Iterable whose iterator  endlessly returning elements from the given iterable.
+     * 
+     * @param iterable.
+     * @return an <code>Iterable</code>.
+     */
+    
     public static Iterable<Object> repeat(final Object object) {
 	return buildObjectIterable(new IteratorMaker<Object>() {
 	    public Iterator<Object> iterator() {
@@ -669,7 +748,14 @@ public class Iteration {
 	    }
 	});
     }
-
+    
+    /**
+     * Make an Iterable whose iterator returns an iterable of the given objects  repeating,  count, number of times.
+     * 
+     * @param count, the number of times to repeat.
+     * @param objects, a variable number of Objects.
+     * @return an <code>Iterable</code>.
+     */
     public static Iterable<Object> repeat(int count, Object... objects) {
 
 	return repeat(count, iterable(objects));
@@ -705,14 +791,33 @@ public class Iteration {
 	});
     }
 
-    public static boolean all(Lambda lambda, Iterable<?> iterable) {
+    /**
+     * A test method that return true if the predicate evaluates true for all elements 
+     * returned by the iterable, otherwise false.
+     * 
+     * @param predicate.
+     * @param iterable.
+     * @return boolean, true if the predicate evaluates true for all elements 
+     * returned by the iterable, otherwise false.
+     */
+    
+    public static boolean all(Lambda predicate, Iterable<?> iterable) {
 	for (Object obj : iterable) {
-	    if (lambda.process(obj) == null)
+	    if (predicate.process(obj) == null)
 		return false;
 	}
 	return true;
     }
-
+    
+    /**
+     * A test method that return true if the  predicate evaluates true for any element 
+     * returned by the iterable, otherwise false.
+     * 
+     * @param predicate.
+     * @param iterable.
+     * @return boolean, true if the predicate evaluates true for any element 
+     * returned by the iterable, otherwise false.
+     */
     public static boolean any(Lambda lambda, Iterable<?> iterable) {
 	for (Object obj : iterable) {
 	    if (lambda.process(obj) == null)
@@ -721,50 +826,20 @@ public class Iteration {
 	return false;
     }
 
-    public static Object[] map(Object[] array, Lambda lambda) {
+    
+    
+    private static Object[] map(Object[] array, Lambda lambda) {
 	return map(array, lambda, 0, array.length);
     }
 
-    public static Object[] map(Object[] array, Lambda lambda, int start,
+    private static Object[] map(Object[] array, Lambda lambda, int start,
 	    int stop) {
 	Object[] result = new Object[stop - start];
 	for (int i = start; i < stop; i++)
 	    result[i] = lambda.process(array[i]);
 	return result;
     }
-
-    // public static Object[] filter(Object[]array, Lambda lambda) throws
-    // Exception {
-    // Collection<Object> result = new ArrayList<Object>();
-    // for (Object obj : array) {
-    // Object value = lambda.process(obj);
-    // if (value != null)
-    // result.add(value);
-    // }
-    // return result.toArray();
-    // }
-    //
-    //
-    //
-    //
-    // public static Object reduce(Object[]array, Lambda lambda) throws
-    // Exception {
-    // Object result = null;
-    // for (Object obj : array) {
-    // result = lambda.process(result, obj);
-    // }
-    // return result;
-    // }
-    // 
-    //
-    // public static boolean all(Object[]array, Lambda lambda) throws Exception
-    // {
-    // for (Object obj : array) {
-    // if ((Boolean)lambda.process(obj) == false)
-    // return false;
-    // }
-    // return true;
-    // }
+    
     public static boolean any(Object[] array, Lambda lambda) throws Exception {
 	for (Object obj : array) {
 	    if ((Boolean) lambda.process(obj) == false)
@@ -783,15 +858,15 @@ public class Iteration {
 
     public static String join(Iterable<?> parts, String del) {
 
-	StringBuffer result = new StringBuffer();
-	int i = 0;
-	for (Object part : parts) {
-	    result.append(part);
-	    result.append(del);
-	    i++;
-	}
-	return i > 0 ? result.substring(0, result.length() - del.length())
-		: result.toString();
+    	StringBuffer result = new StringBuffer();
+    	int i = 0;
+    	for (Object part : parts) {
+    	    result.append(part);
+    	    result.append(del);
+    	    i++;
+    	}
+    	return i > 0 ? result.substring(0, result.length() - del.length())
+    		: result.toString();
     }
 
     public static String join(Object[] parts, String del) {
@@ -876,9 +951,11 @@ public class Iteration {
 	System.out.println("testing reduce(lambda x,y: x+y, a,0): "
 		+ reduce(new Lambda() {
 		    public Object process(Object... args) {
-			return ((Integer) args[0]) + ((Integer) args[1]);
+		    	int x = (Integer) args[0];
+				int y = (Integer) args[1];
+			return x+y;
 		    }
-		}, a, 0));
+		}, iterable(1,2,3,4,5), 0));
 
 	System.out.println("testing slice(" + str(a) + "\n\t, 1,10,3): "
 		+ slice(a, 1, 10, 3));
