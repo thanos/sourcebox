@@ -300,7 +300,7 @@ public class Iteration {
          * @param  lambda, an <code>Lamda</code>
          * @param  iterable, an <code>Iterable</code>
          * @return an <code>Iterable</code>.
-         * 
+         * <pre>
          * -----------------------------------------------------
          * Collection<Object> a = toCollection(new ArrayList<Object>(), 1, 2, 3, 4, 5, 6, 3, 3, 10);
          * Iterable<Integer> b = range(2, 10, 3);
@@ -309,18 +309,18 @@ public class Iteration {
          * 
          * System.out.println("testing map(lambda x: x*10, b): "
          * + map(new Lambda() {
-         *  public Object process(Object... args) {
-         *  return ((Integer) args[0]) * 10;
-         *  }
+         *  	public Object process(Object... args) {
+         *  		return ((Integer) args[0]) * 10;
+         *  	}
          *  }, b));
          *  
          *  System.out.println("testing map(lambda x,y: x*10+y, a, b): "
          *  + map(new Lambda() {
-         *  public Object process(Object... args) {
-         *	int x = (Integer) args[0];
-         *	int y = (Integer) args[1];
-         *	return x+y;
-         *  }
+         *  	public Object process(Object... args) {
+         *			int x = (Integer) args[0];
+         *			int y = (Integer) args[1];
+         *			return x+y;
+         *  	}
          *  }, a, b));
          * .....................................................
          * a = 1,2,3,4,5,6,3,3,10
@@ -328,8 +328,7 @@ public class Iteration {
          * testing map(lambda x: x*10, b): (20,50,80)
          * testing map(lambda x,y: x*10+y, a, b): (12,25,38)
          * -----------------------------------------------------
-         * 
-         * @see <code>filer,zip</code>.
+         * <pre>
          */
     public static Iterable<Object> map(final Lambda lambda,
 	    final Iterable<?>... iterables) {
@@ -423,7 +422,7 @@ public class Iteration {
      * @param  iterable
      * @return an <code>Iterable</code>.
      * 
-     * @see <code>map</code>.
+     * @see  #map(com.syntazo.coffeegrains.Iteration.Lambda, Iterable...)
      */
  
     public static Iterable<Object> filter(final Lambda predicate,
@@ -472,7 +471,8 @@ public class Iteration {
      * @param  iterable
      * @return an <code>Iterable</code>.
      * 
-     * @see <code>filter, dropwhile</code>.
+     * @see #filter(com.syntazo.coffeegrains.Iteration.Lambda, Iterable)
+     * @see #dropwhile(com.syntazo.coffeegrains.Iteration.Lambda, Iterable)
      */
     
     public static Iterable<Object> takewhile(final Lambda lambda,
@@ -562,7 +562,7 @@ public class Iteration {
      * from left to right, so as to reduce the iterable to a single value. 
      * 
      * The example the code below  calculates ((((1+2)+3)+4)+5). 
-     *         
+     *  <pre>      
      * -----------------------------------------------------
      * 
      * System.out.println("testing reduce(lambda x,y: x+y, a,0): "
@@ -577,6 +577,7 @@ public class Iteration {
      * .....................................................
      * testing reduce(lambda x,y: x+y, a,0): 15 
      * -----------------------------------------------------
+     * </pre>
      * 
      * @param  predicate, a Lambda
      * @param  iterable
