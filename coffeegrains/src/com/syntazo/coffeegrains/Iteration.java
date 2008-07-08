@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.python.core.PyFile;
+
 public class Iteration {
 	   public final static Iterator<Object> Null = new Iterator<Object>() {
 			public boolean hasNext() {
@@ -136,7 +138,7 @@ public class Iteration {
      * 
      * @see range(start, stop, step)
      */
-    public static Iterable<Integer> irange(final int start, final int stop) {
+    public static Iterable<Integer> range(final int start, final int stop) {
 		return range(start, stop, 1);
     }
     /**
@@ -265,8 +267,8 @@ public class Iteration {
 	return buildObjectIterable(new IteratorMaker<Object>() {
 	    public Iterator<Object> iterator() {
 		return new Iterator<Object>() {
-		    Iterator<Enum> iterator = ienum(iterable).iterator();
-		    Iterator<Integer> range = irange(start, stop, step)
+		    Iterator<Enum> iterator = enumerate(iterable).iterator();
+		    Iterator<Integer> range = range(start, stop, step)
 			    .iterator();
 
 		    public boolean hasNext() {
@@ -821,12 +823,15 @@ public class Iteration {
 
     public static void main(String[] args) {
 
+    	(new PyFile("c:\\Extract-7.txx", "w", 4000)).write((new PyFile("c:\\Extract-7.txt", "r", 4000)).read());
+    	 	
+    	
 	Collection<Object> a = toCollection(new ArrayList<Object>(), 1, 2, 3,
 		4, 5, 6, 3, 3, 10);
 	System.out
 		.println("Collection<Object> a = toCollection(new ArrayList<Object>(), 1,2,3,4,5,6,3,3,10): "
 			+ str(a));
-	Iterable<Integer> b = irange(2, 10, 3);
+	Iterable<Integer> b = range(2, 10, 3);
 	System.out.println("Iterable<Integer> b = irange(2,10,3): " + b);
 	Iterable<Object> c = iterable(1, 2, 3, 4);
 	System.out.println("Iterable c = iterable(1,2,3): " + c);
@@ -835,7 +840,7 @@ public class Iteration {
 	System.out.println("Iterable d = iterable(new Integer []{1,2,3,4}): "
 		+ c);
 
-	System.out.println("testing ienum(b): " + ienum(c));
+	System.out.println("testing ienum(b): " + enumerate(c));
 
 	Iterator forever = repeat(4).iterator();
 	System.out.println("Iterable forever = repeat(4).iterator()");
@@ -862,7 +867,7 @@ public class Iteration {
 		}, a, b));
 
 	System.out.println("testing filter(lambda x: x%2==0, a): "
-		+ ifilter(new Lambda() {
+		+ filter(new Lambda() {
 		    public Object process(Object... args) {
 			return ((Integer) args[0]) % 2 == 0 ? args[0] : null;
 		    }
@@ -946,6 +951,9 @@ public class Iteration {
 			return (Integer) args[0] * (Integer) args[1];
 		    }
 		}, iterable(1, 2, 3, 4), iterable(4, 5, 6, 7)), 0));
+	
+	
+		
     }
 
 }
