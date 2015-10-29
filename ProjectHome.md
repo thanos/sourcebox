@@ -1,0 +1,1 @@
+I've been programming since 1978 and I'm constantly finding that I'm reusing my small parts of my code base or porting  them from one language to another. I hope to keep this collection of utility code here others to use.
